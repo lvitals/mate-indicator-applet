@@ -14,6 +14,12 @@ applet_DATA     = $(applet_in_files:.mate-panel-applet.desktop.in=.mate-panel-ap
 %.mate-panel-applet.desktop.in: %.mate-panel-applet.desktop.in.in Makefile
 	$(AM_V_GEN)sed \
 	    -e "s|\@LIBEXECDIR\@|$(libexecdir)|" \
+	    -e "s|\@LIBDIR\@|$(libdir)|" \
+	    -e "s|\@APPLET_IN_PROCESS\@|$(APPLET_IN_PROCESS)|" \
+	    -e "s|\@APPLET_PLATFORMS\@|$(APPLET_PLATFORMS)|" \
+	    -e "s|\@APPLET_LOCATION_INDICATOR\@|$(APPLET_LOCATION_INDICATOR)|" \
+	    -e "s|\@APPLET_LOCATION_APPMENU\@|$(APPLET_LOCATION_APPMENU)|" \
+	    -e "s|\@APPLET_LOCATION_COMPLETE\@|$(APPLET_LOCATION_COMPLETE)|" \
 	    $< > $@
 
 %.mate-panel-applet: %.mate-panel-applet.desktop.in Makefile

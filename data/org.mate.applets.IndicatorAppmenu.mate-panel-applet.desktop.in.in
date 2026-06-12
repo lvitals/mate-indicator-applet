@@ -1,6 +1,7 @@
 [Applet Factory]
 Id=IndicatorAppletAppmenuFactory
-Location=@LIBEXECDIR@/mate-indicator-applet-appmenu
+InProcess=@APPLET_IN_PROCESS@
+Location=@APPLET_LOCATION_APPMENU@
 Name=Indicator Applet Appmenu Factory
 Description=Indicator Applet Appmenu Factory
 
@@ -10,3 +11,4 @@ Description=A applet containing the application menus.
 # Translators: Do NOT translate or transliterate this text (this is an icon file name)!
 Icon=mate-indicator-applet
 MateComponentId=OAFIID:MATE_IndicatorAppletAppmenu
+Platforms=X11;

@@ -17,10 +17,14 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
  */
 
+#include <config.h>
+
 #include "eggaccelerators.h"
 
 #include <string.h>
+#ifdef HAVE_X11
 #include <gdk/gdkx.h>
+#endif
 #include <gdk/gdkkeysyms.h>
 
 enum
@@ -336,6 +340,7 @@ egg_keymap_resolve_virtual_modifiers (GdkKeymap              *keymap,
                                       GdkModifierType        *concrete_mods)
 {
   GdkModifierType concrete;
+#ifdef HAVE_X11
   int i;
   const EggModmap *modmap;
 
@@ -355,6 +360,9 @@ egg_keymap_resolve_virtual_modifiers (GdkKeymap              *keymap,
 
       ++i;
     }
+#else
+  concrete = (GdkModifierType)virtual_mods;
+#endif
 
   *concrete_mods = concrete;
 }
@@ -365,6 +373,7 @@ egg_keymap_virtualize_modifiers (GdkKeymap              *keymap,
                                  EggVirtualModifierType *virtual_mods)
 {
   GdkModifierType virtual;
+#ifdef HAVE_X11
   int i;
   const EggModmap *modmap;
 
@@ -403,10 +412,14 @@ egg_keymap_virtualize_modifiers (GdkKeymap              *keymap,
 
       ++i;
     }
+#else
+  virtual = (GdkModifierType)concrete_mods;
+#endif
 
   *virtual_mods = virtual;
 }
 
+#ifdef HAVE_X11
 static void
 reload_modmap (GdkKeymap *keymap,
                EggModmap *modmap)
@@ -525,3 +538,4 @@ egg_keymap_get_modmap (GdkKeymap *keymap)
 
   return modmap;
 }
+#endif

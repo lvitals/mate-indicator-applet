@@ -1,6 +1,7 @@
 [Applet Factory]
 Id=IndicatorAppletCompleteFactory
-Location=@LIBEXECDIR@/mate-indicator-applet-complete
+InProcess=@APPLET_IN_PROCESS@
+Location=@APPLET_LOCATION_COMPLETE@
 Name=Indicator Applet Complete Factory
 Description=Indicator Applet Complete Factory
 
@@ -10,3 +11,4 @@ Description=A unified applet containing all of the indicators.
 # Translators: Do NOT translate or transliterate this text (this is an icon file name)!
 Icon=mate-indicator-applet
 MateComponentId=OAFIID:MATE_IndicatorAppletComplete
+Platforms=X11;

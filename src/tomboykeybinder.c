@@ -15,12 +15,16 @@
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
  */
+#include <config.h>
+
 #include <string.h>
 
 #include <gdk/gdk.h>
 #include <gdk/gdkwindow.h>
+#ifdef HAVE_X11
 #include <gdk/gdkx.h>
 #include <X11/Xlib.h>
+#endif
 
 #include "eggaccelerators.h"
 #include "tomboykeybinder.h"
@@ -43,6 +47,7 @@ typedef struct _Binding {
 } Binding;
 
 static GSList *bindings = NULL;
+#ifdef HAVE_X11
 static guint32 last_event_time = 0;
 static gboolean processing_event = FALSE;
 
@@ -236,23 +241,28 @@ keymap_changed (GdkKeymap *map G_GNUC_UNUSED)
 		do_grab_key (binding);
 	}
 }
+#endif
 
 void
 tomboy_keybinder_init (void)
 {
-	GdkKeymap *keymap = gdk_keymap_get_for_display (gdk_display_get_default ());
-	GdkWindow *rootwin = gdk_get_default_root_window ();
+#ifdef HAVE_X11
+	if (GDK_IS_X11_DISPLAY (gdk_display_get_default ())) {
+		GdkKeymap *keymap = gdk_keymap_get_for_display (gdk_display_get_default ());
+		GdkWindow *rootwin = gdk_get_default_root_window ();
 
-	lookup_ignorable_modifiers (keymap);
+		lookup_ignorable_modifiers (keymap);
 
-	gdk_window_add_filter (rootwin,
-			       filter_func,
-			       NULL);
+		gdk_window_add_filter (rootwin,
+				       filter_func,
+				       NULL);
 
-	g_signal_connect (keymap,
-			  "keys_changed",
-			  G_CALLBACK (keymap_changed),
-			  NULL);
+		g_signal_connect (keymap,
+				  "keys_changed",
+				  G_CALLBACK (keymap_changed),
+				  NULL);
+	}
+#endif
 }
 
 void
@@ -260,46 +270,54 @@ tomboy_keybinder_bind (const char           *keystring,
 		       TomboyBindkeyHandler  handler,
 		       gpointer              user_data)
 {
-	Binding *binding;
-	gboolean success;
+#ifdef HAVE_X11
+	if (GDK_IS_X11_DISPLAY (gdk_display_get_default ())) {
+		Binding *binding;
+		gboolean success;
 
-	binding = g_new0 (Binding, 1);
-	binding->keystring = g_strdup (keystring);
-	binding->handler = handler;
-	binding->user_data = user_data;
+		binding = g_new0 (Binding, 1);
+		binding->keystring = g_strdup (keystring);
+		binding->handler = handler;
+		binding->user_data = user_data;
 
-	/* Sets the binding's keycode and modifiers */
-	success = do_grab_key (binding);
+		/* Sets the binding's keycode and modifiers */
+		success = do_grab_key (binding);
 
-	if (success) {
-		bindings = g_slist_prepend (bindings, binding);
-	} else {
-		g_free (binding->keystring);
-		g_free (binding);
+		if (success) {
+			bindings = g_slist_prepend (bindings, binding);
+		} else {
+			g_free (binding->keystring);
+			g_free (binding);
+		}
 	}
+#endif
 }
 
 void
 tomboy_keybinder_unbind (const char           *keystring,
 			 TomboyBindkeyHandler  handler)
 {
-	GSList *iter;
+#ifdef HAVE_X11
+	if (GDK_IS_X11_DISPLAY (gdk_display_get_default ())) {
+		GSList *iter;
 
-	for (iter = bindings; iter != NULL; iter = iter->next) {
-		Binding *binding = (Binding *) iter->data;
+		for (iter = bindings; iter != NULL; iter = iter->next) {
+			Binding *binding = (Binding *) iter->data;
 
-		if (strcmp (keystring, binding->keystring) != 0 ||
-		    handler != binding->handler)
-			continue;
+			if (strcmp (keystring, binding->keystring) != 0 ||
+			    handler != binding->handler)
+				continue;
 
-		do_ungrab_key (binding);
+			do_ungrab_key (binding);
 
-		bindings = g_slist_remove (bindings, binding);
+			bindings = g_slist_remove (bindings, binding);
 
-		g_free (binding->keystring);
-		g_free (binding);
-		break;
+			g_free (binding->keystring);
+			g_free (binding);
+			break;
+		}
 	}
+#endif
 }
 
 /*
@@ -308,34 +326,42 @@ tomboy_keybinder_unbind (const char           *keystring,
 gboolean
 tomboy_keybinder_is_modifier (guint keycode)
 {
-	gint i;
-	gint map_size;
-	XModifierKeymap *mod_keymap;
-	gboolean retval = FALSE;
+#ifdef HAVE_X11
+	if (GDK_IS_X11_DISPLAY (gdk_display_get_default ())) {
+		gint i;
+		gint map_size;
+		XModifierKeymap *mod_keymap;
+		gboolean retval = FALSE;
 
-	mod_keymap = XGetModifierMapping (gdk_x11_get_default_xdisplay());
+		mod_keymap = XGetModifierMapping (gdk_x11_get_default_xdisplay());
 
-	map_size = 8 * mod_keymap->max_keypermod;
+		map_size = 8 * mod_keymap->max_keypermod;
 
-	i = 0;
-	while (i < map_size) {
-		if (keycode == mod_keymap->modifiermap[i]) {
-			retval = TRUE;
-			break;
+		i = 0;
+		while (i < map_size) {
+			if (keycode == mod_keymap->modifiermap[i]) {
+				retval = TRUE;
+				break;
+			}
+			++i;
 		}
-		++i;
+
+		XFreeModifiermap (mod_keymap);
+
+		return retval;
 	}
-
-	XFreeModifiermap (mod_keymap);
-
-	return retval;
+#endif
+	return FALSE;
 }
 
 guint32
 tomboy_keybinder_get_current_event_time (void)
 {
-	if (processing_event)
-		return last_event_time;
-	else
-		return GDK_CURRENT_TIME;
+#ifdef HAVE_X11
+	if (GDK_IS_X11_DISPLAY (gdk_display_get_default ())) {
+		if (processing_event)
+			return last_event_time;
+	}
+#endif
+	return GDK_CURRENT_TIME;
 }

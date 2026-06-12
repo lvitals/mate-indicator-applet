@@ -111,20 +111,26 @@ static void update_accessible_desc (IndicatorObjectEntry * entry, GtkWidget * me
  * main
  * ***********/
 
+#ifdef INDICATOR_APPLET_IN_PROCESS
+#define INDICATOR_APPLET_FACTORY_FUNC MATE_PANEL_APPLET_IN_PROCESS_FACTORY
+#else
+#define INDICATOR_APPLET_FACTORY_FUNC MATE_PANEL_APPLET_OUT_PROCESS_FACTORY
+#endif
+
 #ifdef INDICATOR_APPLET
-MATE_PANEL_APPLET_OUT_PROCESS_FACTORY ("IndicatorAppletFactory",
+INDICATOR_APPLET_FACTORY_FUNC ("IndicatorAppletFactory",
                PANEL_TYPE_APPLET,
                "indicator-applet",
                applet_fill_cb, NULL);
 #endif
 #ifdef INDICATOR_APPLET_COMPLETE
-MATE_PANEL_APPLET_OUT_PROCESS_FACTORY ("IndicatorAppletCompleteFactory",
+INDICATOR_APPLET_FACTORY_FUNC ("IndicatorAppletCompleteFactory",
                PANEL_TYPE_APPLET,
                "indicator-applet-complete",
                applet_fill_cb, NULL);
 #endif
 #ifdef INDICATOR_APPLET_APPMENU
-MATE_PANEL_APPLET_OUT_PROCESS_FACTORY ("IndicatorAppletAppmenuFactory",
+INDICATOR_APPLET_FACTORY_FUNC ("IndicatorAppletAppmenuFactory",
                PANEL_TYPE_APPLET,
                "indicator-applet-appmenu",
                applet_fill_cb, NULL);
@@ -133,6 +139,7 @@ MATE_PANEL_APPLET_OUT_PROCESS_FACTORY ("IndicatorAppletAppmenuFactory",
 /*************
  * log files
  * ***********/
+#ifndef INDICATOR_APPLET_IN_PROCESS
 #ifdef INDICATOR_APPLET
 #define LOG_FILE_NAME  "indicator-applet.log"
 #endif
@@ -143,6 +150,7 @@ MATE_PANEL_APPLET_OUT_PROCESS_FACTORY ("IndicatorAppletAppmenuFactory",
 #define LOG_FILE_NAME  "indicator-applet-appmenu.log"
 #endif
 GOutputStream * log_file = NULL;
+#endif
 
 /*****************
  * Hotkey support
@@ -942,6 +950,7 @@ matepanelapplet_reorient_cb (GtkWidget *applet, MatePanelAppletOrient neworient,
 #endif
 #define N_(x) x
 
+#ifndef INDICATOR_APPLET_IN_PROCESS
 static void
 log_to_file_cb (GObject * source_obj G_GNUC_UNUSED,
                 GAsyncResult * result G_GNUC_UNUSED, gpointer user_data)
@@ -995,6 +1004,7 @@ log_to_file (const gchar * domain G_GNUC_UNUSED,
 
 	return;
 }
+#endif
 
 static gboolean
 applet_fill_cb (MatePanelApplet * applet, const gchar * iid G_GNUC_UNUSED,
@@ -1017,6 +1027,7 @@ applet_fill_cb (MatePanelApplet * applet, const gchar * iid G_GNUC_UNUSED,
 	if (!first_time)
 	{
 		first_time = TRUE;
+#ifndef INDICATOR_APPLET_IN_PROCESS
 #ifdef INDICATOR_APPLET
 		g_set_application_name(_("Indicator Applet"));
 #endif
@@ -1026,8 +1037,11 @@ applet_fill_cb (MatePanelApplet * applet, const gchar * iid G_GNUC_UNUSED,
 #ifdef INDICATOR_APPLET_APPMENU
 		g_set_application_name(_("Indicator Applet Application Menu"));
 #endif
+#endif
 
+#ifndef INDICATOR_APPLET_IN_PROCESS
 		g_log_set_default_handler(log_to_file, NULL);
+#endif
 
 		tomboy_keybinder_init();
 	}

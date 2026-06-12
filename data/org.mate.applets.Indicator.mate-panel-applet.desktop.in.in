@@ -1,6 +1,7 @@
 [Applet Factory]
 Id=IndicatorAppletFactory
-Location=@LIBEXECDIR@/mate-indicator-applet
+InProcess=@APPLET_IN_PROCESS@
+Location=@APPLET_LOCATION_INDICATOR@
 Name=Indicator Applet Factory
 Description=Indicator Applet Factory
 
@@ -10,3 +11,4 @@ Description=An indicator of something that needs your attention on the desktop
 # Translators: Do NOT translate or transliterate this text (this is an icon file name)!
 Icon=mate-indicator-applet
 MateComponentId=OAFIID:MATE_IndicatorApplet
+Platforms=X11;

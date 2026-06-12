@@ -34,9 +34,71 @@ UBUNTU_INDICATOR_NG_VERSION=12.10.2
 AYATANA_INDICATOR_REQUIRED_VERSION=0.6.0
 
 PKG_CHECK_MODULES(APPLET, gtk+-3.0 >= $GTK_REQUIRED_VERSION
-                          x11
                           libmatepanelapplet-4.0 >= $PANEL_REQUIRED_VERSION
                           )
+
+AC_ARG_ENABLE([wayland],
+              AS_HELP_STRING([--enable-wayland], [Enable Wayland support]),
+              [enable_wayland=$enableval],
+              [enable_wayland=auto])
+
+have_wayland=no
+if test "x$enable_wayland" != "xno"; then
+  PKG_CHECK_MODULES(WAYLAND, [gdk-wayland-3.0],
+                    [have_wayland=yes], [have_wayland=no])
+  if test "x$have_wayland" = "xyes"; then
+    AC_DEFINE(HAVE_WAYLAND, 1, [Define if Wayland support is enabled])
+  elif test "x$enable_wayland" = "xyes"; then
+    AC_MSG_ERROR([Wayland support requested but dependencies not found])
+  fi
+fi
+AM_CONDITIONAL(HAVE_WAYLAND, test "x$have_wayland" = "xyes")
+
+AC_ARG_ENABLE([x11],
+              AS_HELP_STRING([--enable-x11], [Enable X11 support]),
+              [enable_x11=$enableval],
+              [enable_x11=auto])
+
+have_x11=no
+if test "x$enable_x11" != "xno"; then
+  PKG_CHECK_MODULES(X11, [gdk-x11-3.0 x11],
+                    [have_x11=yes], [have_x11=no])
+  if test "x$have_x11" = "xyes"; then
+    AC_DEFINE(HAVE_X11, 1, [Define if X11 support is enabled])
+  elif test "x$enable_x11" = "xyes"; then
+    AC_MSG_ERROR([X11 support requested but dependencies not found])
+  fi
+fi
+AM_CONDITIONAL(HAVE_X11, test "x$have_x11" = "xyes")
+
+if test "x$have_x11" != "xyes" && test "x$have_wayland" != "xyes"; then
+  AC_MSG_ERROR([Neither X11 nor Wayland support is available])
+fi
+
+APPLET_PLATFORMS=
+if test "x$have_x11" = "xyes"; then
+  APPLET_PLATFORMS="${APPLET_PLATFORMS}X11;"
+fi
+if test "x$have_wayland" = "xyes"; then
+  APPLET_PLATFORMS="${APPLET_PLATFORMS}Wayland;"
+fi
+
+if test "x$have_wayland" = "xyes"; then
+  APPLET_IN_PROCESS=true
+  APPLET_LOCATION_INDICATOR="${libdir}/mate-panel/applets/libindicator-applet.so"
+  APPLET_LOCATION_APPMENU="${libdir}/mate-panel/applets/libindicator-applet-appmenu.so"
+  APPLET_LOCATION_COMPLETE="${libdir}/mate-panel/applets/libindicator-applet-complete.so"
+else
+  APPLET_IN_PROCESS=false
+  APPLET_LOCATION_INDICATOR="${libexecdir}/mate-indicator-applet"
+  APPLET_LOCATION_APPMENU="${libexecdir}/mate-indicator-applet-appmenu"
+  APPLET_LOCATION_COMPLETE="${libexecdir}/mate-indicator-applet-complete"
+fi
+AC_SUBST(APPLET_IN_PROCESS)
+AC_SUBST(APPLET_PLATFORMS)
+AC_SUBST(APPLET_LOCATION_INDICATOR)
+AC_SUBST(APPLET_LOCATION_APPMENU)
+AC_SUBST(APPLET_LOCATION_COMPLETE)
 
 AC_SUBST(APPLET_CFLAGS)
 AC_SUBST(APPLET_LIBS)
