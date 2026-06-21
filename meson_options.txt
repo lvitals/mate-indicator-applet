@@ -1,0 +1,2 @@
+option('indicators', type: 'combo', choices: ['auto', 'ayatana', 'ubuntu'], value: 'auto', description: 'Indicators implementation to build against')
+option('in-process', type: 'boolean', value: true, description: 'Build indicator applets as shared libraries for in-process loading (required for Wayland)')
