@@ -11,4 +11,4 @@ Description=An indicator of something that needs your attention on the desktop
 # Translators: Do NOT translate or transliterate this text (this is an icon file name)!
 Icon=mate-indicator-applet
 MateComponentId=OAFIID:MATE_IndicatorApplet
-Platforms=X11;
+Platforms=@APPLET_PLATFORMS@
