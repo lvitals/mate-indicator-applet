@@ -1,12 +1,114 @@
 [![Translation status](https://translate.fedoraproject.org/widget/mate-desktop/svg-badge.svg)](https://translate.fedoraproject.org/engage/mate-desktop/)
 
-mate-indicator-applet
----------------------
+# MATE Indicator Applet
 
-A small applet to display information from various applications consistently in the panel.
+MATE Indicator Applet (`mate-indicator-applet`) is a small applet for the MATE Panel. It is designed to display information and status updates from various applications consistently in the panel by hosting Ayatana Indicators (or legacy Ubuntu Indicators).
 
-The indicator applet exposes Ayatana Indicators in the MATE Panel. Ayatana Indicators are an initiative by Canonical to provide crisp and clean system and application status indication. They take the form of an icon and associated menu, displayed (usually) in the desktop panel. Existing indicators include the Message Menu, Battery Menu and Sound menu.
+These indicators (e.g., sound menu, battery indicator, messaging menu) present status information in the form of an icon accompanied by a dropdown menu, ensuring clean, unified, and interactive desktop status reporting.
 
-MATE Indicator Applet is a fork of Indicator Applet for GNOME (https://launchpad.net/indicator-applet).
+MATE Indicator Applet is a fork of the original Indicator Applet for GNOME.
 
-https://mate-desktop.org/
+---
+
+## Dependencies
+
+To build MATE Indicator Applet from source, you will need the following tools and libraries installed on your system.
+
+### Build Tools & Utilities
+* C Compiler (GCC or Clang)
+* Autotools (Autoconf, Automake, Libtool, pkg-config) - *only required for the legacy build system*
+* Meson Build System (version `0.56.0` or higher)
+* Ninja build backend
+* Git
+* Gettext
+
+### Library Dependencies
+* **GLib / GIO** (>= 2.50.0)
+* **GTK+ 3** (>= 3.22.0)
+* **MATE Panel Applet Library** (`libmatepanelapplet-4.0` >= 1.17.0)
+* **X11 Libraries**: `x11`, `gdk-x11-3.0` (optional/required for X11 support)
+* **Wayland Libraries**: `gdk-wayland-3.0` (optional/required for Wayland support)
+* **Ayatana Indicators** (`ayatana-indicator3-0.4` >= 0.6.0) OR **Ubuntu Indicators** (`indicator3-0.4` >= 0.3.90)
+
+### Optional Library Dependencies
+* **Ayatana IDO** (`ayatana-ido3-0.4` >= 0.4.0, optional, for custom menu items support under Ayatana Indicators)
+* **Ubuntu IDO** (`libido3-0.1` >= 13.10, optional, for custom menu items support under Ubuntu Indicators)
+
+---
+
+## Building and Installing
+
+### 1. Initialize and Update Submodules
+If you are building as part of the MATE Desktop suite or from a repository setup that references external submodules, ensure all submodules are fully initialized and updated before configuring the build:
+
+```bash
+git submodule update --init --recursive
+```
+
+### 2. Configure the Build (Meson)
+Use Meson to configure the build. It is recommended to use the standard installation directories matching your system layout:
+
+```bash
+meson setup builddir \
+  --prefix=/usr \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --buildtype=plain
+```
+
+#### Custom Build Options
+You can configure optional features using `-D<option>=<value>`. Available options include:
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `indicators` | combo | `auto` | Choose indicator backend (`auto`, `ayatana`, `ubuntu`) |
+| `wayland` | feature | `auto` | Enable Wayland backend support |
+| `x11` | feature | `auto` | Enable X11 backend support |
+
+*Example (forcing Ayatana Indicators and disabling Wayland support explicitly):*
+```bash
+meson setup builddir -Dindicators=ayatana -Dwayland=disabled
+```
+
+### 3. Compile the Code
+Compile the project using the configured build directory:
+
+```bash
+meson compile -C builddir
+```
+
+### 4. Install the Indicator Applet
+Install the compiled binaries, factory schemas, and data files to the system:
+
+```bash
+sudo meson install -C builddir
+```
+
+---
+
+## Legacy Autotools Build (Reference)
+
+For environments still relying on the legacy Autotools build system:
+
+```bash
+./autogen.sh \
+  --prefix=/usr \
+  --sysconfdir=/etc \
+  --localstatedir=/var
+make
+sudo make install
+```
+
+---
+
+## How to Report Bugs
+
+If you encounter any issues or want to request features, please report them to our GitHub issue tracker:
+
+[MATE Indicator Applet Issue Tracker](https://github.com/mate-desktop/mate-indicator-applet/issues)
+
+In the report, please include the following information:
+* Operating system name and version.
+* Versions of C compiler, glib, and GTK+ libraries.
+* Step-by-step instructions to reproduce the bug.
+* If the bug is a crash, the exact output text or a full backtrace.
