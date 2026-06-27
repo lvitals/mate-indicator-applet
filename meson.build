@@ -114,7 +114,7 @@ if have_x11
 endif
 
 # Applet configurations
-in_process = get_option('in-process')
+in_process = true
 applet_in_process = in_process ? 'true' : 'false'
 applet_platforms = 'X11;Wayland;'
 indicator_libdir = join_paths(libdir, 'mate-indicator-applet')
