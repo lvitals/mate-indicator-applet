@@ -1,1 +1,3 @@
 option('indicators', type: 'combo', choices: ['auto', 'ayatana', 'ubuntu'], value: 'auto', description: 'Indicators implementation to build against')
+option('x11', type: 'feature', value: 'auto', description: 'Enable X11 support')
+option('wayland', type: 'feature', value: 'auto', description: 'Enable Wayland support')

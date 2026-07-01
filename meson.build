@@ -27,14 +27,22 @@ gio_dep = dependency('gio-2.0')
 gtk_dep = dependency('gtk+-3.0', version: '>= 3.22.0')
 mate_panel_dep = dependency('libmatepanelapplet-4.0', version: '>= 1.17.0')
 
-# X11, Wayland and XWayland are part of the same build.
-wayland_client_dep = dependency('gdk-wayland-3.0')
-x11_client_dep = dependency('gdk-x11-3.0')
-x11_lib_dep = dependency('x11')
-have_wayland = true
-have_x11 = true
-wayland_deps = [wayland_client_dep]
-x11_deps = [x11_client_dep, x11_lib_dep]
+# Display backends can be selected independently.  A Wayland-only build must
+# not pull gdk-x11 or libX11 in as an accidental compatibility dependency.
+wayland_opt = get_option('wayland')
+wayland_client_dep = dependency('gdk-wayland-3.0', required: wayland_opt)
+have_wayland = wayland_client_dep.found()
+wayland_deps = have_wayland ? [wayland_client_dep] : []
+
+x11_opt = get_option('x11')
+x11_client_dep = dependency('gdk-x11-3.0', required: x11_opt)
+x11_lib_dep = dependency('x11', required: x11_opt)
+have_x11 = x11_client_dep.found() and x11_lib_dep.found()
+x11_deps = have_x11 ? [x11_client_dep, x11_lib_dep] : []
+
+if not have_x11 and not have_wayland
+  error('At least one display backend must be enabled')
+endif
 
 # Indicators detection
 indicators_opt = get_option('indicators')
@@ -116,7 +124,13 @@ endif
 # Applet configurations
 in_process = true
 applet_in_process = in_process ? 'true' : 'false'
-applet_platforms = 'X11;Wayland;'
+applet_platforms = ''
+if have_x11
+  applet_platforms += 'X11;'
+endif
+if have_wayland
+  applet_platforms += 'Wayland;'
+endif
 indicator_libdir = join_paths(libdir, 'mate-indicator-applet')
 if in_process
   applet_location_indicator = join_paths(indicator_libdir, 'libmate-indicator-applet.so')
